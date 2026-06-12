@@ -1,0 +1,62 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id         String      @id @default(cuid())
+  email      String      @unique
+  name       String?
+  depth      Depth       @default(INTERMEDIATE)
+  streak     Int         @default(0)
+  lastDropAt DateTime?
+  interests  Interest[]
+  drops      Drop[]
+  savedCards SavedCard[]
+  createdAt  DateTime    @default(now())
+}
+
+model Interest {
+  id       String  @id @default(cuid())
+  userId   String
+  user     User    @relation(fields: [userId], references: [id], onDelete: Cascade)
+  category String
+  active   Boolean @default(true)
+
+  @@unique([userId, category])
+}
+
+model Drop {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  date        DateTime
+  category    String
+  topic       String
+  lessonJson  Json
+  completed   Boolean  @default(false)
+  quizCorrect Boolean?
+  createdAt   DateTime @default(now())
+
+  @@unique([userId, date])
+}
+
+model SavedCard {
+  id        String   @id @default(cuid())
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  dropId    String
+  cardIndex Int
+  cardJson  Json
+  createdAt DateTime @default(now())
+}
+
+enum Depth {
+  BEGINNER
+  INTERMEDIATE
+  ADVANCED
+}
